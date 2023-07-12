@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<apikit:config name="njc-wma-rds-sapi-config" api="njc-wma-rds-sapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+   <http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="0eda2752-8335-4f3e-9fae-7f86424908aa" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="f8774719-3220-45d2-b947-6221c718009d" >
+		<db:my-sql-connection host="${secure::db.Host}" port="${secure::db.Port}" user="${secure::db.User}" password="${secure::db.Password}" database="${secure::db.Database}" />
+	</db:config>
+	<configuration-properties doc:name="Configuration properties" doc:id="7ad06cf9-900d-46ea-9b00-8e5c92b7479e" file="config.yaml" />
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="d79232c6-6597-408b-a6f6-2ac44c9ad53c" file="config.yaml" key="Mule" >
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
+	<os:object-store name="Object_store" doc:name="Object store" doc:id="8b280f18-b52c-4ed5-9265-165b963b6003" config-ref="ObjectStore_Config"/>
+	<os:config name="ObjectStore_Config" doc:name="ObjectStore Config" doc:id="5bda6ffc-f4ba-4ddd-8c73-0ce28f0d370f" >
+		<os:connection />
+	</os:config>
+	<error-handler name="globalError_Handler" doc:id="5832ee64-9d1b-4cd7-906f-dd0bc9ed99da" >
+		<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="1897b7ac-4217-479b-b7f9-6dc6c58d3bd7" type="ANY">
+			<ee:transform doc:name="Transform Message" doc:id="62f7ec4f-b4fd-4cbd-8ef3-5f49ec02b2fb" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"errorMessage": error.description
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+		</on-error-continue>
+	</error-handler>
+</mule>

@@ -1,0 +1,425 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+	<flow name="retrieveAccountByAccountId" doc:id="3a56acbc-d2c8-406e-866c-310142036e81" >
+		<logger level="INFO" doc:name="Start Logger" doc:id="9feb2d51-70ab-4cdf-9ead-dce6221150be" message="Initial Logger" />
+		<db:select doc:name="Select" doc:id="b06c65ce-4b59-4d8d-a205-e333f70c7ae6" config-ref="Database_Config">
+			<db:sql ><![CDATA[Select * from wealthmanagement.wm_account where ACCT_ID=:ACCT_ID]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"ACCT_ID": attributes.uriParams.accountId}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="e56166b6-8d7d-47bd-8817-41f72e4d1109" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json skipNullOn="everywhere"
+---
+payload map(payload,payload01)->
+{
+ "clientId":payload.CLIENT_ID,
+ "clientAccountNumber":payload.CLIENT_ACCT_NUM,
+ "accountId":payload.ACCT_ID,
+ "productCode":payload.PROD_CODE,
+ "currencyCode":payload.CURR_CODE,
+ "commDate":payload.COMM_DATE,
+ "jointFlag":payload.JOINT_FLAG,
+ "accountType":payload.ACCT_TYPE
+   }]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End Logger" doc:id="fab90a57-a710-44b9-9501-75dd4ee5ad17" message="Logger Ends"/>
+	</flow>
+	<flow name="accountdetails" doc:id="42ef8ef4-e61e-49e9-bc8c-905272f86a03" >
+		<logger level="INFO" doc:name="Start Logger" doc:id="85d05859-7f94-4105-887e-31257fbea07d" message="Initial Logger" />
+		<db:select doc:name="Select" doc:id="8e0e82e2-15d0-45c9-b487-5e56d845df7c" config-ref="Database_Config">
+			<db:sql ><![CDATA[Select * from wealthmanagement.wm_acct_details where ACCT_ID=:ACCT_ID]]></db:sql>
+			<db:input-parameters ><![CDATA[#[output application/json
+---
+{
+	ACCT_ID: attributes.uriParams.accountId 
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="3250f0b5-2aa3-4c3d-8b6d-27eec3114902" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json skipNullOn="everywhere"
+---
+payload map(payload,payload01)->
+{
+	"accountDetails":
+	{
+    "accountId":payload.ACCT_ID,
+    
+     "productCode":payload.PROD_CODE,
+    "validityDate":payload.VAL_DATE,
+ 
+
+    
+    "totalInvestmentAmount":payload.TOT_INVEST_AMT,
+    "totalWithdrawnAmount":payload.TOT_WDRAW_AMT,
+    "totalIncomeAmount":payload.TOT_INCOME_AMT,
+    "currentAssetValueAmount":payload.CURR_ASSET_VAL_AMT,
+    "bankingBalanceAmount":payload.BANKING_BALANCE_AMT,
+    "encashmentValueAmount":payload.ENCASH_VALUE_AMT,
+    "netChange":payload.NET_CHANGE,
+    
+}}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End Logger" doc:id="d9b59a8a-0ff2-4cc2-8bae-61efcdcda2c3" message="Logger Ends" />
+	</flow>
+	<flow name="retrieveAccountUsingclientId" doc:id="ae4b7fd3-bfe4-456a-b081-9499cc08c796" >
+		<logger level="INFO" doc:name="Start Logger" doc:id="44260318-e0a8-4f58-9fc4-852ac87a04bb" message="Initial Logger" />
+		<db:select doc:name="Select" doc:id="4bc51349-874b-4b9e-8b66-fd44092325b9" config-ref="Database_Config" >
+			<db:sql ><![CDATA[Select a.PROD_CODE,a.CURR_CODE,CURRENT_TIMESTAMP(),a.CLIENT_ID,a.CLIENT_ACCT_NUM,a.COMM_DATE,a.JOINT_FLAG,a.ACCT_ID,a.ACCT_TYPE,ad.VAL_DATE,ad.CURR_ASSET_VAL_AMT,ad.TOT_INVEST_AMT,ad.TOT_WDRAW_AMT,ad.TOT_INCOME_AMT,ad.ENCASH_VALUE_AMT,ad.BANKING_BALANCE_AMT,ad.NET_CHANGE from wealthmanagement.wm_account a join wealthmanagement.wm_acct_details ad on a.ACCT_ID=ad.ACCT_ID where CLIENT_ID=:CLIENT_ID]]></db:sql>
+			<db:input-parameters ><![CDATA[#[output application/json
+---
+{
+	CLIENT_ID: attributes.uriParams.clientId 
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="to json" doc:id="5680d824-e08b-4ea6-a202-af84afd7974d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json skipNullOn="everywhere"
+---
+payload map(payload,payload01)->
+{
+ "clientId":payload.CLIENT_ID,
+ "clientAccountNumber":payload.CLIENT_ACCT_NUM,
+ "accountId":payload.ACCT_ID,
+ "accountType":payload.ACCT_TYPE,
+ "productCode":payload.PROD_CODE,
+ "currencyCode":payload.CURR_CODE,
+ "commDate":payload.COMM_DATE,
+ "jointFlag":payload.JOINT_FLAG,
+ 
+  "validityDate":payload.VAL_DATE,
+  "totalInvestmentAmount":payload.TOT_INVEST_AMT,
+    "totalWithdrawnAmount":payload.TOT_WDRAW_AMT,
+    "totalIncomeAmount":payload.TOT_INCOME_AMT,
+    "currentAssetValueAmount":payload.CURR_ASSET_VAL_AMT,
+    "bankingBalanceAmount":payload.BANKING_BALANCE_AMT,
+    "encashmentValueAmount":payload.ENCASH_VALUE_AMT,
+    "netChange":payload.NET_CHANGE,
+    "lastUpdated": payload.LAST_UPDATED
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End Logger" doc:id="2be0f99e-015c-4696-ab2c-41c1842b99a4" message="Logger Ends" />
+		<error-handler ref="globalError_Handler" />
+	</flow>
+	<flow name="accountsummary" doc:id="6a6fafe0-5183-4e81-882a-6647925a2309" >
+		<logger level="INFO" doc:name="Start Logger" doc:id="ce140b19-5842-408a-a0b8-7727836ccac2" message="Initial Logger" />
+		<db:select doc:name="Select" doc:id="8567f300-7d5c-46fd-8239-4452d0f39396" config-ref="Database_Config" >
+			<db:sql ><![CDATA[Select * from wealthmanagement.wm_account where ACCT_TYPE=:ACCT_TYPE]]></db:sql>
+			<db:input-parameters ><![CDATA[#[output application/json
+---
+{
+	ACCT_TYPE: attributes.queryParams.accountType 
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="daca9e79-3b06-4bb3-9e5b-ea20356a882d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json skipNullOn="everywhere"
+---
+payload map(payload,payload01)->
+{
+ "clientId":payload.CLIENT_ID,
+ "clientAccountNumber":payload.CLIENT_ACCT_NUM,
+ "accountId":payload.ACCT_ID,
+ "productCode":payload.PROD_CODE,
+ "currencyCode":payload.CURR_CODE,
+ "commDate":payload.COMM_DATE,
+ "jointFlag":payload.JOINT_FLAG,
+ "accountType":payload.ACCT_TYPE
+   }]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End Logger" doc:id="f3c4a7e8-6c86-4d35-8686-a57e86e59713" message="Logger Ends" />
+	</flow>
+	<flow name="clientInsertFlow" doc:id="13d770cd-178a-41c3-99be-056f65881897" >
+		<logger level="INFO" doc:name="Logger" doc:id="85b5e70a-8f8b-4ae8-8274-970930f6bf69" />
+		<db:insert doc:name="Insert" doc:id="c63e140f-44da-4ead-ac82-864b37b054b7" config-ref="Database_Config">
+			<db:sql ><![CDATA[INSERT INTO wealthmanagement.wm_client ( name, first_name, middle_name, last_name,birth_date, phone, email, shipping_street, shipping_city, shipping_country, shipping_state, shipping_postalcode, annual_income, citizenship,sf_client_id)
+VALUES ( :name, :first_name, :middle_name, :last_name, :birth_date, :phone, :email, :shipping_street, :shipping_city, :shipping_country, :shipping_state, :shipping_postalcode, :annual_income, :citizenship , :sf_client_id)]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+
+"name":payload.name,
+"first_name": payload.firstName,
+"middle_name": payload.middleName,
+"last_name": payload.lastName,
+"birth_date": payload.birthDate ,
+"phone": payload.phone ,
+"email": payload.email,
+"shipping_street":payload.shippingStreet,
+"shipping_city": payload.shippingCity,
+"shipping_country": payload.shippingCountry,
+"shipping_state": payload.shippingState,
+"shipping_postalcode": payload.shippingPostalCode,
+"annual_income": payload.annualIncome,
+"citizenship": payload.citizenship,
+"salesforceClientId": payload.sfClientId
+}]]]></db:input-parameters>
+		</db:insert>
+		<ee:transform doc:name="Transform Message" doc:id="7e4fe6a7-a3db-43fc-a5e1-8857d5b76412" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Message": "Insert successful"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End Logger" doc:id="fbae828a-2b66-4f70-9161-f58bc9607ffc" message="Logger Ends" />
+	</flow>
+	<flow name="summaryUsingId" doc:id="3ba35a00-0300-4dc3-98b6-578b6040ad63" >
+		<logger level="INFO" doc:name="Start Logger" doc:id="34876be9-8268-4f6f-96f6-b53623961f23" message="Initial Logger" />
+		<db:select doc:name="Select" doc:id="7a903b6c-2319-4dab-b5d0-78d4edc5edde" config-ref="Database_Config" >
+			<db:sql ><![CDATA[Select * from wealthmanagement.wm_account where CLIENT_ID=:CLIENT_ID AND ACCT_TYPE=:ACCT_TYPE]]></db:sql>
+			<db:input-parameters ><![CDATA[#[output application/json
+---
+{
+	CLIENT_ID: attributes.uriParams.Id,
+	ACCT_TYPE: attributes.queryParams.accountType 
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="cbed1dca-0f2f-44f8-a100-75105e3636fd" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json skipNullOn="everywhere"
+---
+payload map(payload,payload01)->
+{
+ "clientId":payload.CLIENT_ID,
+ "clientAccountNumber":payload.CLIENT_ACCT_NUM,
+ "accountId":payload.ACCT_ID,
+ "productCode":payload.PROD_CODE,
+ "currencyCode":payload.CURR_CODE,
+ "commDate":payload.COMM_DATE,
+ "jointFlag":payload.JOINT_FLAG,
+ "accountType":payload.ACCT_TYPE
+   }]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End Logger" doc:id="104b41bc-16ee-4a85-83dd-5d69570046a4" message="Logger Ends" />
+	</flow>
+	<flow name="updateAccountdetailsToFinancialCloud" doc:id="d0140c4f-5fac-4a9c-91ca-f117c2c623a3" >
+		<logger level="INFO" doc:name="Start Logger" doc:id="c1722058-8c7e-45b3-b4d4-c00872fb6e3f" message="Logger started"/>
+		<os:retrieve doc:name="Retrieving lastUpdatedTime" doc:id="807199ef-ea7e-4384-b886-e0396affd3bc" key="time" objectStore="Object_store">
+			<os:default-value><![CDATA[2023-07-05T23:47:16]]></os:default-value>
+		</os:retrieve>
+		<set-variable value="#[payload]" doc:name="variable time" doc:id="0ba57b8a-c19b-4276-a3a9-0b4135834a73" variableName="time" />
+		<db:select doc:name="Select" doc:id="15716803-a559-4e53-91be-805ff588bcd0" config-ref="Database_Config">
+			<db:sql><![CDATA[Select a.PROD_CODE,a.CURR_CODE,a.CLIENT_ID,CURRENT_TIMESTAMP(),ad.LAST_UPDATED as ACCOUNTDETAILS_LASTUPDATED,a.SF_PRODUCT_ID,COMM_DATE,a.JOINT_FLAG,a.ACCT_ID,a.ACCT_TYPE,a.ACCT_NAME,a.SF_SEC_CLIENT_ID,a.SF_HOUSEHOLD_ID,ad.VAL_DATE,ad.CURR_ASSET_VAL_AMT,ad.TOT_INVEST_AMT,ad.TOT_WDRAW_AMT,ad.TOT_INCOME_AMT,ad.ENCASH_VALUE_AMT,ad.BANKING_BALANCE_AMT,ad.NET_CHANGE from wealthmanagement.wm_account a join wealthmanagement.wm_acct_details ad on a.ACCT_ID=ad.ACCT_ID where ad.LAST_UPDATED>:time
+]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	time: vars.time
+	
+}]]]></db:input-parameters>
+		</db:select>
+		<os:store doc:name="Storing lastUpdated time" doc:id="0cc9c09f-c5b4-4975-8fe0-1cc798502e2c" key="time" objectStore="Object_store" failOnNullValue="false">
+			<os:value ><![CDATA[#[payload[-1].ACCOUNTDETAILS_LASTUPDATED]]]></os:value>
+		</os:store>
+		<ee:transform doc:name="Transform Message" doc:id="4dc9c199-8429-46f9-9abe-f17eaa03df95">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json skipNullOn="everywhere"
+---
+payload map(payload,payload01)->
+{
+  "account":
+  {
+  	 "clientId": payload.CLIENT_ID,
+ 	 "accountId": payload.ACCT_ID,
+  	 "sfProductId": payload.SF_PRODUCT_ID,
+	 "accountType": payload.ACCT_TYPE,
+	 "commencementDate": payload.COMM_DATE,
+	 "sfAccountName": payload.ACCT_NAME,
+	 "productCode": payload.PROD_CODE,
+	 "currencyCode": payload.CURR_CODE,
+	 "jointFlag": payload.JOINT_FLAG,
+	 "sfSecondaryClientId": payload.SF_SEC_CLIENT_ID,
+	 "sfhouseholdId": payload.SF_HOUSEHOLD_ID,
+	 },
+	 "valuationDetails":
+	 {
+     
+     "valuationDate": payload.VAL_DATE,
+     "bankingBalanceAmount": payload.BANKING_BALANCE_AMT,
+     "totalInvestmentAmount": payload.TOT_INVEST_AMT,
+     "totalWithdrawAmount": payload.TOT_WDRAW_AMT,
+     "totalIncomeAmount": payload.TOT_INCOME_AMT,
+     "currentAssetValueAmount": payload.CURR_ASSET_VAL_AMT,
+     "encashmentValueAmount":payload.ENCASH_VALUE_AMT,
+     "netChange": payload.NET_CHANGE,
+     },
+     "currentTimestamp": payload."CURRENT_TIMESTAMP()",
+     "lastUpdatedTime": payload.ACCOUNTDETAILS_LASTUPDATED,
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End Logger" doc:id="78c9b3fd-a933-4ed5-a634-ce5108f9bd79" message="End Logger" />
+		<error-handler ref="globalError_Handler" />
+	</flow>
+	<flow name="investmentbyclientId" doc:id="ce52b226-2594-4b3d-a8a3-395741dae9f5" >
+		<logger level="INFO" doc:name="Start Logger" doc:id="a5e39184-56b4-455d-b5bc-e87df82d547a" message="Initial Logger" />
+		<db:select doc:name="Select" doc:id="bbc993b4-3e17-409c-8f5c-6852222db724" config-ref="Database_Config" >
+			<db:sql ><![CDATA[select ad.PROD_CODE,a.ACCT_ID,ad.CURR_ASSET_VAL_AMT,ad.ENCASH_VALUE_AMT,ad.NET_CHANGE,a.ACCT_TYPE,a.CLIENT_ID,c.sf_client_id FROM wealthmanagement.wm_acct_details ad join wealthmanagement.wm_account a on ad.ACCT_ID=a.ACCT_ID join wealthmanagement.wm_client c on a.CLIENT_ID=c.CLIENT_ID where a.CLIENT_ID=:CLIENT_ID and ACCT_TYPE="INVESTMENT"]]></db:sql>
+			<db:input-parameters ><![CDATA[#[output application/json
+---
+{
+	CLIENT_ID: attributes.uriParams.clientId,
+	 
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="991fc29d-ac5f-4fef-81ef-289beed19216" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json skipNullOn="everywhere"
+var curr=payload.CURR_ASSET_VAL_AMT[0 to -1]
+var encash=payload.ENCASH_VALUE_AMT[0 to -1] 
+---
+"investment":
+{
+"salesforceClientId": payload[-1].sf_client_id,
+"currentvalueSummary" : sum(curr) as String {format: "0.00"},
+"encashmentvalueSummary": sum(encash) as String {format: "0.00"},
+"account":
+payload map()->
+{
+    "accountId": $.ACCT_ID,
+    "clientId": $.CLIENT_ID,
+    "planName": $.PROD_CODE,
+    "accountType": $.ACCT_TYPE,
+    "currentValue": $.CURR_ASSET_VAL_AMT,
+    "encashmentValue": $.ENCASH_VALUE_AMT,
+    "netChange": $.NET_CHANGE
+}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End Logger" doc:id="8fcad429-b7ed-4bb1-8dee-a14f0c2338b8" message="Logger Ends" />
+	</flow>
+	<flow name="bankingbyclientId" doc:id="3024bd5c-9428-4930-a4bf-9517049696ba" >
+		<logger level="INFO" doc:name="Start Logger" doc:id="08af736b-e891-46fe-b809-b81ae41ff8d4" message="Initial Logger" />
+		<db:select doc:name="Select" doc:id="48e781db-f5e0-498e-a281-7bceb9cfef42" config-ref="Database_Config" >
+			<db:sql ><![CDATA[select ad.PROD_CODE,ad.BANKING_BALANCE_AMT,a.ACCT_ID,ad.CURR_ASSET_VAL_AMT,ad.ENCASH_VALUE_AMT,ad.NET_CHANGE,a.ACCT_TYPE,a.CLIENT_ID,c.sf_client_id FROM wealthmanagement.wm_acct_details ad join wealthmanagement.wm_account a on ad.ACCT_ID=a.ACCT_ID join wealthmanagement.wm_client c on a.CLIENT_ID=c.CLIENT_ID where a.CLIENT_ID=:CLIENT_ID and ACCT_TYPE="Banking"]]></db:sql>
+			<db:input-parameters ><![CDATA[#[output application/json
+---
+{
+	CLIENT_ID: attributes.uriParams.clientId 
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="b8b19436-c143-4556-b0b6-518d7017e523" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json skipNullOn="everywhere"
+var curr=payload.CURR_ASSET_VAL_AMT[0 to -1]
+var encash=payload.ENCASH_VALUE_AMT[0 to -1] 
+---
+"banking":
+{
+"salesforceClientId": payload[-1].sf_client_id,
+"currentvalueSummary" : sum(curr) as String {format: "0.00"},
+"encashmentvalueSummary": sum(encash) as String {format: "0.00"},
+"account":
+payload map()->
+{
+    "accountId": $.ACCT_ID,
+    "clientId": $.CLIENT_ID,
+    "planName": $.PROD_CODE,
+    "accountType": $.ACCT_TYPE,
+    "cashBalance": $.BANKING_BALANCE_AMT
+    
+}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End Logger" doc:id="5c943ccb-74a9-431d-8c06-890375ecb592" message="Logger Ends" />
+	</flow>
+	<flow name="retirementbyclientId" doc:id="227bd44f-3f6d-475c-8277-6aff6f5d5fd0" >
+		<logger level="INFO" doc:name="Start Logger" doc:id="19bff240-c498-4007-a4c3-6fde74ca36be" message="Initial Logger" />
+		<db:select doc:name="Select" doc:id="6ca6735f-ebc7-427c-b37e-e88f986ba2c7" config-ref="Database_Config" >
+			<db:sql ><![CDATA[select ad.PROD_CODE,a.ACCT_ID,ad.CURR_ASSET_VAL_AMT,ad.ENCASH_VALUE_AMT,ad.NET_CHANGE,a.ACCT_TYPE,a.CLIENT_ID,c.sf_client_id FROM wealthmanagement.wm_acct_details ad join wealthmanagement.wm_account a on ad.ACCT_ID=a.ACCT_ID join wealthmanagement.wm_client c on a.CLIENT_ID=c.CLIENT_ID where a.CLIENT_ID=:CLIENT_ID and ACCT_TYPE="Retirement"]]></db:sql>
+			<db:input-parameters ><![CDATA[#[output application/json
+---
+{
+	CLIENT_ID: attributes.uriParams.clientId
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="55b9fc28-35d6-4d8b-9f17-379adea7a495" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json skipNullOn="everywhere"
+var curr=payload.CURR_ASSET_VAL_AMT[0 to -1]
+var encash=payload.ENCASH_VALUE_AMT[0 to -1] 
+---
+"retirement":
+{
+"salesforceClientId": payload[-1].sf_client_id,
+"currentvalueSummary" : sum(curr) as String {format: "0.00"},
+"encashmentvalueSummary": sum(encash) as String {format: "0.00"},
+"account":
+payload map()->
+{
+    "accountId": $.ACCT_ID,
+    "clientId": $.CLIENT_ID,
+    "planName": $.PROD_CODE,
+    "accountType": $.ACCT_TYPE,
+    "currentValue": $.CURR_ASSET_VAL_AMT,
+    "encashmentValue": $.ENCASH_VALUE_AMT,
+    "netChange": $.NET_CHANGE
+}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End Logger" doc:id="5feb64b0-9244-44d7-a26a-9309c94b951b" message="Logger Ends" />
+	</flow>
+	<flow name="protectionbyclientId" doc:id="519a38ef-c112-4004-bdb7-bec6013fab2a" >
+		<logger level="INFO" doc:name="Start Logger" doc:id="c5733190-9d33-46d4-a2fa-f5c0fc051e53" message="Initial Logger" />
+		<db:select doc:name="Select" doc:id="534ed5b7-454c-4b9c-9459-0eeb19949ab9" config-ref="Database_Config" >
+			<db:sql ><![CDATA[select ad.PROD_CODE,a.ACCT_ID,ad.CURR_ASSET_VAL_AMT,ad.ENCASH_VALUE_AMT,ad.NET_CHANGE,a.ACCT_TYPE,a.CLIENT_ID,c.sf_client_id FROM wealthmanagement.wm_acct_details ad join wealthmanagement.wm_account a on ad.ACCT_ID=a.ACCT_ID join wealthmanagement.wm_client c on a.CLIENT_ID=c.CLIENT_ID where a.CLIENT_ID=:CLIENT_ID and ACCT_TYPE="Protection"]]></db:sql>
+			<db:input-parameters ><![CDATA[#[output application/json
+---
+{
+	CLIENT_ID: attributes.uriParams.clientId
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="fe78f15d-e874-4aee-880b-0672efd63d17" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json skipNullOn="everywhere"
+var curr=payload.CURR_ASSET_VAL_AMT[0 to -1]
+var encash=payload.ENCASH_VALUE_AMT[0 to -1] 
+---
+"protection":
+{
+"salesforceClientId": payload[-1].sf_client_id,
+"currentvalueSummary" : sum(curr) as String {format: "0.00"},
+"encashmentvalueSummary": sum(encash) as String {format: "0.00"},
+"account":
+payload map()->
+{
+    "accountId": $.ACCT_ID,
+    "clientId": $.CLIENT_ID,
+    "planName": $.PROD_CODE,
+    "accountType": $.ACCT_TYPE,
+    "currentValue": $.CURR_ASSET_VAL_AMT,
+    "encashmentValue": $.ENCASH_VALUE_AMT,
+    "netChange": $.NET_CHANGE
+}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End Logger" doc:id="cc36c96f-1817-4662-a497-d520f2b1f368" message="Logger Ends" />
+	</flow>
+</mule>

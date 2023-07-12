@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    <flow name="njc-wma-rds-sapi-main">
+        <http:listener config-ref="HTTP_Listener_config" path="/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="njc-wma-rds-sapi-config" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="njc-wma-rds-sapi-console">
+        <http:listener config-ref="HTTP_Listener_config" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="njc-wma-rds-sapi-config" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="post:\account:application\json:njc-wma-rds-sapi-config">
+        <flow-ref doc:name="Flow Reference" doc:id="25ae8b0b-a455-4b00-8677-66d9c2234968" name="clientInsertFlow" />
+    </flow>
+    <flow name="post:\client:application\json:njc-wma-rds-sapi-config">
+        <ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "insert successful"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\account\summary:njc-wma-rds-sapi-config">
+        <ee:transform doc:name="Transform Message" doc:id="852316f6-bd0a-4557-a1b7-b0ed140e0da6">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+{
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\account\(accountId)\details:njc-wma-rds-sapi-config">
+        <flow-ref doc:name="accountDetails" doc:id="050f0dbb-ea62-48c1-bbe9-467c05a11919" name="accountdetails" />
+    </flow>
+    <flow name="get:\summary\(Id):njc-wma-rds-sapi-config">
+        <flow-ref doc:name="accountSummary" doc:id="a56e982c-582b-4dd1-8581-bda352f7d807" name="accountsummary" />
+    </flow>
+    <flow name="get:\account\(accountId):njc-wma-rds-sapi-config">
+        <flow-ref doc:name="retrieveAccountByAccountId" doc:id="c4edb78b-f95d-41e9-a8df-e54b59758d39" name="retrieveAccountByAccountId" />
+    </flow>
+    <flow name="get:\client\(clientId):njc-wma-rds-sapi-config">
+        <ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  clientId: 100,
+  clientAccountNumber: "",
+  accountId: 98534,
+  productCode: "LSA895",
+  currencyCode: "CUR002",
+  commDate: "2022-04-12",
+  jointFlag: "No",
+  accountType: "Investment"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="post:\account\(accountId)\details:application\json:njc-wma-rds-sapi-config">
+        <ee:transform>
+            <ee:variables>
+                <ee:set-variable variableName="accountId">attributes.uriParams.'accountId'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "insert successful"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\account\(Id)\summary:njc-wma-rds-sapi-config">
+        <flow-ref doc:name="summaryUsingId" doc:id="d42f01ff-0f39-4d40-ac3a-03a7c212e669" name="summaryUsingId" />
+    </flow>
+    <flow name="put:\account:application\json:njc-wma-rds-sapi-config">
+        <logger level="INFO" doc:name="Logger" doc:id="5decf91b-ecfb-4e5a-9347-0c34744693d1" />
+    </flow>
+    <flow name="put:\account\(accountId)\details:application\json:njc-wma-rds-sapi-config">
+        <logger level="INFO" doc:name="Logger" doc:id="645da7a6-6877-4f3b-acac-9b088e2df381" />
+    </flow>
+    <flow name="get:\account\(clientId)\retrieve:njc-wma-rds-sapi-config">
+        <flow-ref doc:name="retrieveAccountUsingclientId" doc:id="bc679a68-0d5d-425f-b21c-1262033dcbe4" name="retrieveAccountUsingclientId" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="get:\account\update:njc-wma-rds-sapi-config">
+        <flow-ref doc:name="updateAccountdetailsToFinancialCloud" doc:id="c0030999-6860-4c2e-aca7-18eabb0675cb" name="updateAccountdetailsToFinancialCloud" />
+        <error-handler ref="globalError_Handler" />
+    </flow>
+    <flow name="get:\banking\(clientId):njc-wma-rds-sapi-config">
+        <flow-ref doc:name="bankingbyclientId" doc:id="9f680b22-ca00-498e-b288-52f29ddd0571" name="bankingbyclientId" />
+    </flow>
+    <flow name="get:\investment\(clientId):njc-wma-rds-sapi-config">
+        <flow-ref doc:name="investmentbyclientId" doc:id="11f9aca7-a98e-4865-8c26-deda40335ca7" name="investmentbyclientId" />
+    </flow>
+    <flow name="get:\protection\(clientId):njc-wma-rds-sapi-config">
+        <flow-ref doc:name="protectionbyclientId" doc:id="6bf1bd6e-70fe-444a-aab4-3844d1256bcd" name="protectionbyclientId" />
+    </flow>
+    <flow name="get:\retirement\(clientId):njc-wma-rds-sapi-config">
+        <flow-ref doc:name="retirementbyclientId" doc:id="d166a8c2-d228-4958-960a-0c08a5e869f5" name="retirementbyclientId" />
+    </flow>
+</mule>
