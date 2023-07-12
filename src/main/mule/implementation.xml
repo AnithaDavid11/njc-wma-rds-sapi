@@ -167,7 +167,7 @@ VALUES ( :name, :first_name, :middle_name, :last_name, :birth_date, :phone, :ema
 "shipping_postalcode": payload.shippingPostalCode,
 "annual_income": payload.annualIncome,
 "citizenship": payload.citizenship,
-"salesforceClientId": payload.sfClientId
+"sf_client_id": payload.sfClientId
 }]]]></db:input-parameters>
 		</db:insert>
 		<ee:transform doc:name="Transform Message" doc:id="7e4fe6a7-a3db-43fc-a5e1-8857d5b76412" >
