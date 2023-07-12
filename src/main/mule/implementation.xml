@@ -148,9 +148,10 @@ payload map(payload,payload01)->
 	</flow>
 	<flow name="clientInsertFlow" doc:id="13d770cd-178a-41c3-99be-056f65881897" >
 		<logger level="INFO" doc:name="Logger" doc:id="85b5e70a-8f8b-4ae8-8274-970930f6bf69" />
+		<set-variable value="#[payload.sfClientId]" doc:name="Set Variable" doc:id="2cd191b3-13b3-40fa-9a63-a670a8d4af58" variableName="a"/>
 		<db:insert doc:name="Insert" doc:id="c63e140f-44da-4ead-ac82-864b37b054b7" config-ref="Database_Config">
-			<db:sql ><![CDATA[INSERT INTO wealthmanagement.wm_client ( name, first_name, middle_name, last_name,birth_date, phone, email, shipping_street, shipping_city, shipping_country, shipping_state, shipping_postalcode, annual_income, citizenship,sf_client_id)
-VALUES ( :name, :first_name, :middle_name, :last_name, :birth_date, :phone, :email, :shipping_street, :shipping_city, :shipping_country, :shipping_state, :shipping_postalcode, :annual_income, :citizenship , :sf_client_id)]]></db:sql>
+			<db:sql ><![CDATA[Insert into wealthmanagement.wm_client(name,first_name,middle_name,last_name,birth_date,phone,email,shipping_street,shipping_city,shipping_country,shipping_state,shipping_postalcode,annual_income,citizenship,sf_client_id)
+values(:name,:first_name,:middle_name,:last_name,:birth_date,:phone,:email,:shipping_street,:shipping_city,:shipping_country,:shipping_state,:shipping_postalcode,:annual_income,:citizenship,:sf_client_id)]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{
 
 "name":payload.name,
@@ -170,13 +171,20 @@ VALUES ( :name, :first_name, :middle_name, :last_name, :birth_date, :phone, :ema
 "sf_client_id": payload.sfClientId
 }]]]></db:input-parameters>
 		</db:insert>
+		<db:select doc:name="Select" doc:id="cfedcb15-9211-4a77-bf96-25773ffaa76a" config-ref="Database_Config">
+			<db:sql ><![CDATA[Select client_id from wealthmanagement.wm_client where sf_client_id=:sf_client_id]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+"sf_client_id" : vars.a
+}]]]></db:input-parameters>
+		</db:select>
 		<ee:transform doc:name="Transform Message" doc:id="7e4fe6a7-a3db-43fc-a5e1-8857d5b76412" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
+payload map()->
 {
-	"Message": "Insert successful"
+	"clientId": $.client_id
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>

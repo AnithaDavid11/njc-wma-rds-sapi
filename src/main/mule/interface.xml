@@ -30,16 +30,7 @@
         <flow-ref doc:name="Flow Reference" doc:id="25ae8b0b-a455-4b00-8677-66d9c2234968" name="clientInsertFlow" />
     </flow>
     <flow name="post:\client:application\json:njc-wma-rds-sapi-config">
-        <ee:transform>
-            <ee:message>
-                <ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-{
-  message: "insert successful"
-}]]></ee:set-payload>
-            </ee:message>
-        </ee:transform>
+		<flow-ref doc:name='clientInsertFlow' doc:id="67127472-4c90-49fa-873b-e43b4ecb93f2" name="clientInsertFlow"/>
     </flow>
     <flow name="get:\account\summary:njc-wma-rds-sapi-config">
         <ee:transform doc:name="Transform Message" doc:id="852316f6-bd0a-4557-a1b7-b0ed140e0da6">
