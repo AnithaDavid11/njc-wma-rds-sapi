@@ -23,7 +23,7 @@ output application/json skipNullOn="everywhere"
 payload map(payload,payload01)->
 {
  "clientId":payload.CLIENT_ID,
- "clientAccountNumber":payload.CLIENT_ACCT_NUM,
+ "sfProductId":payload.SF_PRODUCT_ID,
  "accountId":payload.ACCT_ID,
  "productCode":payload.PROD_CODE,
  "currencyCode":payload.CURR_CODE,
@@ -77,7 +77,7 @@ payload map(payload,payload01)->
 	<flow name="retrieveAccountUsingclientId" doc:id="ae4b7fd3-bfe4-456a-b081-9499cc08c796" >
 		<logger level="INFO" doc:name="Start Logger" doc:id="44260318-e0a8-4f58-9fc4-852ac87a04bb" message="Initial Logger" />
 		<db:select doc:name="Select" doc:id="4bc51349-874b-4b9e-8b66-fd44092325b9" config-ref="Database_Config" >
-			<db:sql ><![CDATA[Select a.PROD_CODE,a.CURR_CODE,CURRENT_TIMESTAMP(),a.CLIENT_ID,a.CLIENT_ACCT_NUM,a.COMM_DATE,a.JOINT_FLAG,a.ACCT_ID,a.ACCT_TYPE,ad.VAL_DATE,ad.CURR_ASSET_VAL_AMT,ad.TOT_INVEST_AMT,ad.TOT_WDRAW_AMT,ad.TOT_INCOME_AMT,ad.ENCASH_VALUE_AMT,ad.BANKING_BALANCE_AMT,ad.NET_CHANGE from wealthmanagement.wm_account a join wealthmanagement.wm_acct_details ad on a.ACCT_ID=ad.ACCT_ID where CLIENT_ID=:CLIENT_ID]]></db:sql>
+			<db:sql ><![CDATA[Select a.PROD_CODE,a.CURR_CODE,c.SF_CLIENT_ID,CURRENT_TIMESTAMP(),a.CLIENT_ID,a.SF_PRODUCT_ID,a.COMM_DATE,a.JOINT_FLAG,a.ACCT_ID,a.ACCT_TYPE,ad.VAL_DATE,ad.CURR_ASSET_VAL_AMT,ad.TOT_INVEST_AMT,ad.TOT_WDRAW_AMT,ad.TOT_INCOME_AMT,ad.ENCASH_VALUE_AMT,ad.BANKING_BALANCE_AMT,ad.NET_CHANGE from wealthmanagement.wm_account a join wealthmanagement.wm_acct_details ad on a.ACCT_ID=ad.ACCT_ID join wealthmanagement.wm_client c on a.CLIENT_ID=c.CLIENT_ID where a.CLIENT_ID=:CLIENT_ID]]></db:sql>
 			<db:input-parameters ><![CDATA[#[output application/json
 ---
 {
@@ -92,7 +92,8 @@ output application/json skipNullOn="everywhere"
 payload map(payload,payload01)->
 {
  "clientId":payload.CLIENT_ID,
- "clientAccountNumber":payload.CLIENT_ACCT_NUM,
+ "sfProductId":payload.SF_PRODUCT_ID,
+ "sfClientId": payload.SF_CLIENT_ID,
  "accountId":payload.ACCT_ID,
  "accountType":payload.ACCT_TYPE,
  "productCode":payload.PROD_CODE,
@@ -133,7 +134,7 @@ output application/json skipNullOn="everywhere"
 payload map(payload,payload01)->
 {
  "clientId":payload.CLIENT_ID,
- "clientAccountNumber":payload.CLIENT_ACCT_NUM,
+ "sfProductId":payload.SF_PRODUCT_ID,
  "accountId":payload.ACCT_ID,
  "productCode":payload.PROD_CODE,
  "currencyCode":payload.CURR_CODE,
@@ -200,7 +201,7 @@ output application/json skipNullOn="everywhere"
 payload map(payload,payload01)->
 {
  "clientId":payload.CLIENT_ID,
- "clientAccountNumber":payload.CLIENT_ACCT_NUM,
+ "sfProductId":payload.SF_PRODUCT_ID,
  "accountId":payload.ACCT_ID,
  "productCode":payload.PROD_CODE,
  "currencyCode":payload.CURR_CODE,
