@@ -396,7 +396,7 @@ payload map()->
 	<flow name="protectionbyclientId" doc:id="519a38ef-c112-4004-bdb7-bec6013fab2a" >
 		<logger level="INFO" doc:name="Start Logger" doc:id="c5733190-9d33-46d4-a2fa-f5c0fc051e53" message="Initial Logger" />
 		<db:select doc:name="Select" doc:id="534ed5b7-454c-4b9c-9459-0eeb19949ab9" config-ref="Database_Config" >
-			<db:sql ><![CDATA[select ad.PROD_CODE,a.ACCT_ID,ad.CURR_ASSET_VAL_AMT,ad.ENCASH_VALUE_AMT,ad.NET_CHANGE,a.ACCT_TYPE,a.CLIENT_ID,c.sf_client_id FROM wealthmanagement.wm_acct_details ad join wealthmanagement.wm_account a on ad.ACCT_ID=a.ACCT_ID join wealthmanagement.wm_client c on a.CLIENT_ID=c.CLIENT_ID where a.CLIENT_ID=:CLIENT_ID and ACCT_TYPE="Protection"]]></db:sql>
+			<db:sql ><![CDATA[select ad.PROD_CODE,a.ACCT_ID,ad.BANKING_BALANCE_AMT,ad.CURR_ASSET_VAL_AMT,ad.ENCASH_VALUE_AMT,ad.NET_CHANGE,a.ACCT_TYPE,a.CLIENT_ID,c.sf_client_id FROM wealthmanagement.wm_acct_details ad join wealthmanagement.wm_account a on ad.ACCT_ID=a.ACCT_ID join wealthmanagement.wm_client c on a.CLIENT_ID=c.CLIENT_ID where a.CLIENT_ID=:CLIENT_ID and ACCT_TYPE="Protection"]]></db:sql>
 			<db:input-parameters ><![CDATA[#[output application/json
 ---
 {
@@ -422,9 +422,9 @@ payload map()->
     "clientId": $.CLIENT_ID,
     "planName": $.PROD_CODE,
     "accountType": $.ACCT_TYPE,
-    "currentValue": $.CURR_ASSET_VAL_AMT,
-    "encashmentValue": $.ENCASH_VALUE_AMT,
-    "netChange": $.NET_CHANGE
+    "premium": $.BANKING_BALANCE_AMT,
+    "insuredAmount": $.ENCASH_VALUE_AMT
+    
 }
 }]]></ee:set-payload>
 			</ee:message>
