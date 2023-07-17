@@ -431,4 +431,29 @@ payload map()->
 		</ee:transform>
 		<logger level="INFO" doc:name="End Logger" doc:id="cc36c96f-1817-4662-a497-d520f2b1f368" message="Logger Ends" />
 	</flow>
+	<flow name="accountHistory" doc:id="d8e18de3-6173-4c21-bf59-421431ede213" >
+		<logger level="INFO" doc:name="Start Logger" doc:id="eb03b9c9-6b09-427a-b9be-fe9b986b3dc2" message="Logger starts"/>
+		<db:select doc:name="Select" doc:id="715ba2e6-d51d-489f-a54f-3f016ef841e8" config-ref="Database_Config" >
+			<db:sql ><![CDATA[SELECT * FROM wealthmanagement.wm_acct_history where ACCT_ID= :id and FROM_DATETIME  >= :fromDate]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	id: attributes.uriParams.id,
+	fromDate: attributes.queryParams.fromDate as Date
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="fba847c8-411f-41a5-b756-ab88e3a34fd1" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json skipNullOn="everywhere"
+---
+{
+	accountId: payload[0].ACCT_ID as String default "",
+	historical: payload map ( payload01 , indexOfPayload01 ) -> {
+		date: payload01.FROM_DATETIME as Date as String default "",
+		currentValue: payload01.ASSET_VAL_AMT as String default ""
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End Logger" doc:id="984b9f6e-3140-4bc2-9605-3d35a07d652d" message="Logger ends"/>
+	</flow>
 </mule>

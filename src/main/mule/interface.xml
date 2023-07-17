@@ -30,7 +30,7 @@
         <flow-ref doc:name="Flow Reference" doc:id="25ae8b0b-a455-4b00-8677-66d9c2234968" name="clientInsertFlow" />
     </flow>
     <flow name="post:\client:application\json:njc-wma-rds-sapi-config">
-		<flow-ref doc:name='clientInsertFlow' doc:id="67127472-4c90-49fa-873b-e43b4ecb93f2" name="clientInsertFlow"/>
+        <flow-ref doc:name="clientInsertFlow" doc:id="67127472-4c90-49fa-873b-e43b4ecb93f2" name="clientInsertFlow" />
     </flow>
     <flow name="get:\account\summary:njc-wma-rds-sapi-config">
         <ee:transform doc:name="Transform Message" doc:id="852316f6-bd0a-4557-a1b7-b0ed140e0da6">
@@ -116,5 +116,8 @@ output application/json
     </flow>
     <flow name="get:\retirement\(clientId):njc-wma-rds-sapi-config">
         <flow-ref doc:name="retirementbyclientId" doc:id="d166a8c2-d228-4958-960a-0c08a5e869f5" name="retirementbyclientId" />
+    </flow>
+    <flow name="get:\account\(id)\historical:njc-wma-rds-sapi-config">
+		<flow-ref doc:name="Flow Reference" doc:id="8b086885-aae1-4341-a84e-541fbcf7354e" name="accountHistory" />
     </flow>
 </mule>

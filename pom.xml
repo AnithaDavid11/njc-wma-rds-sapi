@@ -92,7 +92,7 @@
 		<dependency>
 			<groupId>b0beec90-c6cc-4c36-8f7c-ef1f8f91253b</groupId>
 			<artifactId>njc-wma-rds-sapi</artifactId>
-			<version>1.0.11</version>
+			<version>1.0.15</version>
 			<classifier>raml</classifier>
 			<type>zip</type>
 		</dependency>
